@@ -21,3 +21,4 @@ class EmployeeOut(EmployeeBase):
 
     class Config:
         orm_mode = True
+        
