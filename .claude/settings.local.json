@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install:*)",
+      "mcp__chrome-devtools__take_snapshot",
+      "mcp__chrome-devtools__click",
+      "mcp__chrome-devtools__wait_for",
+      "Bash(agent-browser:*)",
+      "mcp__chrome-devtools__list_pages",
+      "Bash(curl:*)"
+    ]
+  }
+}
