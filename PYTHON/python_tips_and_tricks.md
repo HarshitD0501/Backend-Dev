@@ -571,28 +571,39 @@ print(p._age)        # ✓ Works (but don't!)
 print(p._Person__secret)  # ✓ Access via mangled name
 ```
 
-### Getters and Setters (The Pythonic Way)
-Use methods to control access and validate data.
+### Control & Encapsulation: Getters, Setters, and `@property`
+Getters and setters aren't just for "access"—they are for **Access Control**.
+
+#### Why use them?
+1.  **Validation (The Guard):** Ensure data is valid (e.g., age cannot be negative) before saving it.
+2.  **Protection (Encapsulation):** Hide internal names like `__name` so users can't bypass your rules.
+3.  **Derived Data:** Return data that isn't even stored (e.g., `full_name` from `first` and `last`).
+
+> [!NOTE]
+> **Name Mangling:** When you use `__name`, Python renames it internally to `_ClassName__name`. That’s why `p.__name` will throw an **AttributeError** if you try to access it directly from outside!
+
+#### The "Modern" Pythonic Way: `@property`
+In real Python projects, we don't usually write `get_age()`. Instead, we use the `@property` decorator to make methods *look* like normal attributes while keeping the logic behind them.
+
 ```python
 class Person:
-    def __init__(self, name, age):
-        self.__name = name
+    def __init__(self, age):
         self.__age = age
-    
-    # Getter
-    def get_name(self):
-        return self.__name
-    
-    # Setter with validation
-    def set_age(self, age):
-        if age > 0:
-            self.__age = age
+
+    @property
+    def age(self):  # This is the "Getter"
+        return self.__age
+
+    @age.setter
+    def age(self, value):  # This is the "Setter"
+        if value > 0:
+            self.__age = value
         else:
             print("Age must be positive!")
 
-p = Person("Krish", 34)
-print(p.get_name())   # Access via getter
-p.set_age(-5)         # Validation prevents invalid data
+p = Person(25)
+print(p.age)   # No brackets needed! (Calls the getter)
+p.age = -5     # Looks like simple assignment (Calls the setter)
 ```
 
 ### Magic Methods (Dunder Methods)
@@ -623,46 +634,73 @@ print(str(p))   # Output: Krish, 34 years old
 print(repr(p))  # Output: Person(name='Krish', age=34)
 ```
 
-### Polymorphism: Same Interface, Different Behavior
-Different classes implement the same method differently.
+### Polymorphism: The "Placeholder" Power
+Polymorphism allows a single function or method to work with different types of objects, as long as they follow the same "interface" (contract).
+
+> [!TIP]
+> **The Placeholder Concept:** Think of the function parameter as a **placeholder**. It gets "filled" with a specific object at runtime. The behavior changes based on *which* object fills it, even though the function code stays the same.
+
 ```python
-class Animal:
-    def speak(self):
-        return "Some sound"
+class Shape:
+    def area(self):
+        return "The area of the figure"
 
-class Dog(Animal):
-    def speak(self):  # Override
-        return "Woof!"
+class Rectangle(Shape):
+    def __init__(self, width, height):
+        self.width = width
+        self.height = height
+    def area(self):
+        return self.width * self.height
 
-class Cat(Animal):
-    def speak(self):  # Override
-        return "Meow!"
+class Circle(Shape):
+    def __init__(self, radius):
+        self.radius = radius
+    def area(self):
+        return 3.14 * self.radius * self.radius
 
-# Same function works with different types
-def animal_sound(animal):
-    print(animal.speak())
+# 'shape' acts as a placeholder that gets filled when the function is called
+def print_area(shape):
+    print(f"The area is {shape.area()}")
 
-animal_sound(Dog())  # Output: Woof!
-animal_sound(Cat())  # Output: Meow!
+rectangle = Rectangle(4, 5)
+circle = Circle(3)
+
+print_area(rectangle) # Placeholder filled with Rectangle
+print_area(circle)    # Placeholder filled with Circle
 ```
 
-### Abstract Base Classes (ABC)
-Force subclasses to implement specific methods using `@abstractmethod`.
+### Abstract Base Classes (ABC): The "Official Rulebook"
+ABCs and `@abstractmethod` make your polymorphism **Type Safe** by turning "hope" into a **guarantee**.
+
+-   **The Rulebook (`ABC`):** You cannot create a generic `Vehicle` object. It is just a blueprint.
+-   **The Mandatory Contract (`@abstractmethod`):** Any class inheriting from the blueprint **MUST** implement the method, or Python will stop you immediately with an error.
+
 ```python
 from abc import ABC, abstractmethod
 
 class Vehicle(ABC):
     @abstractmethod
     def start_engine(self):
-        pass  # Must be implemented by subclasses!
+        pass  # This is the rule: All vehicles MUST have a way to start!
 
 class Car(Vehicle):
     def start_engine(self):
         return "Car engine started"
 
-# vehicle = Vehicle()  # ✗ Can't instantiate abstract class!
-car = Car()          # ✓ Works if all abstract methods implemented
+class Motorcycle(Vehicle):
+    def start_engine(self):
+        return "Motorcycle engine started"
+
+# vehicle = Vehicle()  # ✗ Error: Can't instantiate abstract class!
+car = Car()            # ✓ Works because it followed the rules
 ```
+
+#### Why use ABCs?
+| Feature | Standard Polymorphism | ABC + Abstract Methods |
+| :--- | :--- | :--- |
+| **Instantiate Base?** | Yes | **No** (Blueprint only) |
+| **Method Required?** | No (Optional) | **Yes** (Mandatory) |
+| **Safety** | Lower (Crashes at runtime) | **Higher** (Crashes before it starts) |
 
 ---
 
